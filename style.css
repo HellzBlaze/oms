@@ -1,0 +1,420 @@
+/* --- Global Styles & Variables --- */
+:root {
+    --primary-color: #007bff;
+    --primary-hover-color: #0056b3;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --success-hover-color: #218838;
+    --danger-color: #dc3545;
+    --danger-hover-color: #c82333;
+    --warning-color: #ffc107;
+    --warning-hover-color: #e0a800;
+    --light-bg-color: #f8f9fa;
+    --dark-text-color: #343a40;
+    --medium-text-color: #495057;
+    --border-color: #dee2e6;
+    --border-radius: 0.3rem;
+    --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --box-shadow-light: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 30px 20px;
+    background-color: var(--light-bg-color);
+    color: var(--dark-text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.6;
+}
+
+/* --- Lock Screen --- */
+#lockScreen {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+}
+#lockScreen h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--primary-color);
+}
+#lockScreen input {
+    width: calc(100% - 22px);
+    padding: 12px 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    box-sizing: border-box;
+}
+#lockScreen button {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+}
+#lockScreen button:hover {
+    background-color: var(--primary-hover-color);
+}
+
+/* --- App Container --- */
+#appContainer {
+    display: none;
+    width: 100%;
+    max-width: 1200px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    box-sizing: border-box;
+}
+
+/* ****** NEW LOGO STYLING ****** */
+#appLogo {
+    display: block; /* To allow margin auto for centering */
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 200px; /* Adjust as needed */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 25px; /* Space below the logo */
+}
+/* ****** END OF LOGO STYLING ****** */
+
+
+h1, h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 25px;
+}
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 35px;
+}
+h2 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-top: 40px;
+}
+
+/* --- Table Styling --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+    box-shadow: var(--box-shadow-light);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    table-layout: fixed;
+}
+th, td {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 15px;
+    text-align: left;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--primary-hover-color);
+}
+
+#productTable th:nth-child(1),
+#productTable td:nth-child(1) {
+    width: 5%;
+    text-align: center;
+}
+#productTable th:nth-child(2),
+#productTable td:nth-child(2) {
+    width: 20%;
+}
+#productTable th:nth-child(3),
+#productTable td:nth-child(3) {
+    width: 35%;
+    font-size: 0.9em;
+    color: #555;
+}
+#productTable th:nth-child(4),
+#productTable td:nth-child(4) {
+    width: 10%;
+    text-align: right;
+}
+#productTable th:nth-child(5),
+#productTable td:nth-child(5) {
+    width: 10%;
+    text-align: center;
+}
+#productTable th:nth-child(6),
+#productTable td:nth-child(6) {
+    width: 20%;
+    text-align: center;
+}
+
+td {
+    color: var(--medium-text-color);
+}
+tr:last-child td {
+    border-bottom: none;
+}
+tr:hover td {
+    background-color: #f1f3f5;
+}
+
+/* --- Quantity Controls --- */
+.quantity-control-cell {
+    text-align: center;
+}
+.quantity-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.quantity-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 6px 10px;
+    margin: 0 8px;
+    min-width: 32px;
+    line-height: 1.2;
+    transition: background-color 0.2s ease-in-out;
+}
+.quantity-btn:hover:not(:disabled) {
+    background-color: var(--dark-text-color);
+}
+.quantity-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.quantity-display {
+    font-size: 1rem;
+    min-width: 30px;
+    text-align: center;
+    padding: 0 8px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* --- Section Styling (Order Summary, History, Admin) --- */
+.order-summary, .order-history, .admin-section {
+    margin-top: 40px;
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #fff;
+    box-shadow: var(--box-shadow-light);
+}
+.order-summary p, .order-history p, .admin-section p {
+    margin: 8px 0;
+    color: var(--medium-text-color);
+}
+.order-summary strong, .order-history strong, .admin-section strong {
+    color: var(--dark-text-color);
+    font-weight: 600;
+}
+
+/* --- Buttons (General & Specific) --- */
+button {
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+#placeOrderBtn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 25px;
+}
+#placeOrderBtn:hover:not(:disabled) {
+    background-color: var(--success-hover-color);
+}
+#placeOrderBtn:disabled {
+    background-color: #a3d9b1;
+    cursor: not-allowed;
+}
+
+/* --- Input Fields (General & Specific) --- */
+input[type="text"], input[type="password"], input[type="number"], select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    color: var(--medium-text-color);
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#customerNameInput {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+/* --- Order History Items --- */
+.order-log-item {
+    border: 1px solid #e9ecef;
+    background-color: var(--light-bg-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.order-log-item:last-child {
+    border-bottom: 1px solid #e9ecef;
+}
+.order-log-item p > label {
+    display: inline-block;
+    min-width: 150px;
+    font-weight: 500;
+    color: var(--dark-text-color);
+}
+.order-log-item ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+.order-log-item ul li {
+    padding: 3px 0;
+    color: var(--medium-text-color);
+}
+
+.status-select {
+    padding: 8px 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    margin-left: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background-color: #fff;
+    min-width: 150px;
+}
+
+.delete-order-btn {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 15px;
+    float: right;
+}
+.delete-order-btn:hover {
+    background-color: var(--danger-hover-color);
+}
+
+/* --- Stock Management Section --- */
+#stockManagement div {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+#stockManagement label {
+    display: inline-block;
+    margin-right: 15px;
+    min-width: 160px;
+    font-weight: 500;
+    color: var(--dark-text-color);
+}
+#stockManagement select, #stockManagement input[type="number"] {
+    padding: 10px;
+    font-size: 0.95rem;
+    flex-grow: 1;
+    max-width: 300px;
+}
+#stockManagement #currentStockDisplay {
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: var(--border-radius);
+    min-width: 50px;
+    text-align: center;
+}
+
+#updateStockBtn {
+    padding: 12px 20px;
+    background-color: var(--warning-color);
+    color: var(--dark-text-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 10px;
+    width: auto;
+    display: inline-block;
+}
+#updateStockBtn:hover {
+    background-color: var(--warning-hover-color);
+}
+
+/* --- Utility Classes --- */
+.error-message {
+    color: var(--danger-color);
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    margin-top: 10px;
+    text-align: left;
+}
+.success-message {
+    color: var(--success-color);
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.order-log-item::after {
+    content: "";
+    clear: both;
+    display: table;
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antartican Co Order Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="lockScreen">
+        <h2>Enter Access Code</h2>
+        <input type="password" id="accessCodeInput" placeholder="Enter 4-digit code">
+        <button id="unlockBtn">Unlock</button>
+        <p id="lockError" class="error-message" style="display:none;">Incorrect Code!</p>
+    </div>
+
+    <div id="appContainer">
+        <!-- ****** NEW LOGO ADDED HERE ****** -->
+        <img src="logo.png" alt="Antartican Co. Food Stall Logo" id="appLogo">
+        <!-- ****** END OF LOGO ****** -->
+
+        <h1>Order Management System</h1>
+
+        <section id="productListing">
+            <h2>Menu Items</h2>
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th>Price (INR)</th>
+                        <th>Current Stock</th>
+                        <th>Quantity to Order</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    <!-- Products will be dynamically inserted here by script.js -->
+                </tbody>
+            </table>
+        </section>
+
+        <section class="order-summary">
+            <h2>Current Order Summary</h2>
+            <div id="currentOrderItems">
+                <p>No items in order yet.</p>
+            </div>
+            <p><strong>Total Amount: <span id="currentOrderTotal">₹0.00</span></strong></p>
+            <input type="text" id="customerNameInput" placeholder="Customer Name (Optional)">
+            <button id="placeOrderBtn" disabled>Place Order</button>
+        </section>
+
+        <section class="order-history">
+            <h2>Order History</h2>
+            <div id="orderLog">
+                <p>No orders placed yet.</p>
+            </div>
+        </section>
+
+        <section id="stockManagement" class="admin-section">
+            <h2>Stock Management</h2>
+            <div>
+                <label for="stockProductSelect">Select Item:</label>
+                <select id="stockProductSelect"></select>
+            </div>
+            <div>
+                <p>Current Stock: <strong id="currentStockDisplay">-</strong></p>
+            </div>
+            <div>
+                <label for="newStockInput">Set New Stock Quantity:</label>
+                <input type="number" id="newStockInput" min="0" placeholder="Enter new stock">
+            </div>
+            <button id="updateStockBtn">Update Stock</button>
+            <p id="stockUpdateMsg" class="success-message" style="display:none;"></p>
+        </section>
+
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
