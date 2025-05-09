@@ -1,18 +1,18 @@
 /* --- Global Styles & Variables --- */
 :root {
-    --primary-color: #007bff;
-    --primary-hover-color: #0056b3;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --success-hover-color: #218838;
-    --danger-color: #dc3545;
-    --danger-hover-color: #c82333;
-    --warning-color: #ffc107;
+    --primary-color: rgb(90, 193, 90);
+    --primary-hover-color: rgb(0, 86, 179);
+    --secondary-color: rgb(108, 117, 125);
+    --success-color: rgb(40, 167, 69);
+    --success-hover-color: rgb(33, 136, 56);
+    --danger-color: rgb(220, 53, 69);
+    --danger-hover-color: rgb(200, 35, 51);
+    --warning-color: rgb(255, 193, 7);
     --warning-hover-color: #e0a800;
-    --light-bg-color: #f8f9fa;
-    --dark-text-color: #343a40;
-    --medium-text-color: #495057;
-    --border-color: #dee2e6;
+    --light-bg-color: rgb(248, 249, 250);
+    --dark-text-color: rgb(52, 58, 64);
+    --medium-text-color: rgb(73, 80, 87);
+    --border-color: rgb(222, 226, 230);
     --border-radius: 0.3rem;
     --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
     --box-shadow-light: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
