@@ -30,6 +30,7 @@
 
       <nav class="tabs" aria-label="Primary">
         <button class="tab is-active" data-view="dashboard" type="button">Dashboard</button>
+        <button class="tab" data-view="kitchen" type="button">Kitchen</button>
         <button class="tab" data-view="orders" type="button">Orders</button>
         <button class="tab" data-view="products" type="button">Products</button>
         <button class="tab" data-view="customers" type="button">Customers</button>
@@ -85,6 +86,39 @@
                   </thead>
                   <tbody id="lowStockTable"></tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KITCHEN -->
+        <section class="view" data-view="kitchen">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Kitchen</div>
+                <div class="muted small">Focus on open/ready orders. Click a ticket to open details.</div>
+              </div>
+              <div class="panel-actions">
+                <select class="select" id="kitchenTypeFilter" aria-label="Order type filter">
+                  <option value="">All types</option>
+                  <option value="dine-in">Dine-in</option>
+                  <option value="takeaway">Takeaway</option>
+                  <option value="delivery">Delivery</option>
+                </select>
+                <button class="btn btn-ghost" id="btnKitchenRefresh" type="button">Refresh</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="kitchen-board">
+                <div class="kcol">
+                  <div class="kcol-title">Open</div>
+                  <div class="kcol-body" id="kitchenOpen"></div>
+                </div>
+                <div class="kcol">
+                  <div class="kcol-title">Ready</div>
+                  <div class="kcol-body" id="kitchenReady"></div>
+                </div>
               </div>
             </div>
           </div>
