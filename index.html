@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Local OMS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">OM</div>
+          <div>
+            <div class="brand-title">Local OMS</div>
+            <div class="brand-subtitle">Orders • Products • Customers (local-only)</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn btn-ghost" id="btnExport" type="button">Export</button>
+          <label class="btn btn-ghost filelike" for="fileImport">
+            Import
+            <input id="fileImport" type="file" accept="application/json" />
+          </label>
+          <button class="btn btn-primary" id="btnNewOrder" type="button">New order</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Primary">
+        <button class="tab is-active" data-view="dashboard" type="button">Dashboard</button>
+        <button class="tab" data-view="orders" type="button">Orders</button>
+        <button class="tab" data-view="products" type="button">Products</button>
+        <button class="tab" data-view="customers" type="button">Customers</button>
+        <div class="tabs-spacer"></div>
+        <button class="tab tab-danger" id="btnReset" type="button" title="Clears all local data">
+          Reset
+        </button>
+      </nav>
+
+      <main class="content">
+        <!-- DASHBOARD -->
+        <section class="view is-active" data-view="dashboard">
+          <div class="grid">
+            <div class="card">
+              <div class="card-title">Today</div>
+              <div class="kpis">
+                <div class="kpi">
+                  <div class="kpi-label">Orders</div>
+                  <div class="kpi-value" id="kpiTodayOrders">0</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Revenue</div>
+                  <div class="kpi-value" id="kpiTodayRevenue">—</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Avg order</div>
+                  <div class="kpi-value" id="kpiTodayAvg">—</div>
+                </div>
+              </div>
+              <div class="muted small" id="kpiCurrencyHint"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Open orders</div>
+              <div class="pill-row" id="openOrderPills"></div>
+              <div class="divider"></div>
+              <div class="muted small">
+                Tip: click an order in the Orders tab to update status, edit items, or mark paid.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Low stock</div>
+              <div class="muted small">Products at/below reorder point.</div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th class="num">Stock</th>
+                      <th class="num">Reorder</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lowStockTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ORDERS -->
+        <section class="view" data-view="orders">
+          <div class="split">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Orders</div>
+                  <div class="muted small">Search by order #, customer, status.</div>
+                </div>
+                <div class="panel-actions">
+                  <input class="input" id="orderSearch" placeholder="Search…" />
+                  <select class="select" id="orderStatusFilter" aria-label="Status filter">
+                    <option value="">All</option>
+                    <option value="draft">Draft</option>
+                    <option value="open">Open</option>
+                    <option value="ready">Ready</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div class="list" id="orderList"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Order details</div>
+                  <div class="muted small" id="orderDetailsHint">Select an order.</div>
+                </div>
+                <div class="panel-actions" id="orderDetailsActions"></div>
+              </div>
+              <div class="panel-body" id="orderDetails"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section class="view" data-view="products">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Products</div>
+                <div class="muted small">Add products, track stock, and set reorder points.</div>
+              </div>
+              <div class="panel-actions">
+                <input class="input" id="productSearch" placeholder="Search…" />
+                <button class="btn btn-primary" id="btnNewProduct" type="button">New product</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th class="num">Price</th>
+                    <th class="num">Stock</th>
+                    <th class="num">Reorder</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="productTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section class="view" data-view="customers">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Customers</div>
+                <div class="muted small">Optional but helpful for repeats and receipts.</div>
+              </div>
+              <div class="panel-actions">
+                <input class="input" id="customerSearch" placeholder="Search…" />
+                <button class="btn btn-primary" id="btnNewCustomer" type="button">New customer</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th class="num">Orders</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="customerTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="muted small">
+          Runs on your device only. Back up via Export.
+        </div>
+        <div class="muted small" id="footerStorage"></div>
+      </footer>
+    </div>
+
+    <!-- MODAL -->
+    <dialog class="modal" id="modal">
+      <form method="dialog" class="modal-card" id="modalForm">
+        <div class="modal-head">
+          <div class="modal-title" id="modalTitle">Modal</div>
+          <button class="icon-btn" value="cancel" aria-label="Close" type="submit">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-foot" id="modalFoot">
+          <button class="btn btn-ghost" value="cancel" type="submit">Cancel</button>
+          <button class="btn btn-primary" id="modalPrimary" value="default" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
