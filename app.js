@@ -58,7 +58,17 @@ function normalizeDB(db) {
     },
     products: Array.isArray(safe.products) ? safe.products : [],
     customers: Array.isArray(safe.customers) ? safe.customers : [],
-    orders: Array.isArray(safe.orders) ? safe.orders : [],
+    orders: Array.isArray(safe.orders)
+      ? safe.orders.map((o) => ({
+          ...o,
+          status: o?.status || "draft",
+          type: o?.type || "takeaway",
+          table: o?.table || "",
+          pickupName: o?.pickupName || "",
+          paid: Boolean(o?.paid),
+          items: Array.isArray(o?.items) ? o.items : [],
+        }))
+      : [],
   };
 }
 
@@ -100,6 +110,11 @@ const el = {
   kpiCurrencyHint: document.getElementById("kpiCurrencyHint"),
   openOrderPills: document.getElementById("openOrderPills"),
   lowStockTable: document.getElementById("lowStockTable"),
+
+  kitchenTypeFilter: document.getElementById("kitchenTypeFilter"),
+  btnKitchenRefresh: document.getElementById("btnKitchenRefresh"),
+  kitchenOpen: document.getElementById("kitchenOpen"),
+  kitchenReady: document.getElementById("kitchenReady"),
 
   orderSearch: document.getElementById("orderSearch"),
   orderStatusFilter: document.getElementById("orderStatusFilter"),
@@ -151,9 +166,50 @@ function statusClass(status) {
   return `status-${status || "draft"}`;
 }
 
+function orderTypeLabel(type) {
+  if (type === "dine-in") return "Dine-in";
+  if (type === "takeaway") return "Takeaway";
+  if (type === "delivery") return "Delivery";
+  return "—";
+}
+
+function orderExtraMeta(order) {
+  const parts = [];
+  if (order?.type === "dine-in" && order?.table) parts.push(`Table ${order.table}`);
+  if ((order?.type === "takeaway" || order?.type === "delivery") && order?.pickupName) parts.push(order.pickupName);
+  return parts.filter(Boolean).join(" • ");
+}
+
+function orderShortMeta(order) {
+  const extra = orderExtraMeta(order);
+  const type = order?.type ? orderTypeLabel(order.type) : "—";
+  return extra ? `${type} • ${extra}` : type;
+}
+
 function ensureOrderNumber() {
   const max = DB.orders.reduce((m, o) => Math.max(m, safeNumber(o.number, 0)), 0);
   return max + 1;
+}
+
+function addProductLineToOrder(order, productId, qty, { unitPriceOverride = null, useStock = true } = {}) {
+  const p = productById(productId);
+  if (!p) throw new Error("Product not found.");
+  const q = Math.max(1, Math.floor(safeNumber(qty, 1)));
+  const use = Boolean(useStock);
+  if (use && safeNumber(p.stock) < q) throw new Error(`Not enough stock for "${p.name}".`);
+  const unitPrice = unitPriceOverride == null ? safeNumber(p.price) : safeNumber(unitPriceOverride);
+  if (unitPrice < 0) throw new Error("Unit price must be >= 0.");
+
+  order.items.push({
+    id: uid("line"),
+    productId: p.id,
+    name: p.name,
+    qty: q,
+    unitPrice,
+    usedStock: use,
+  });
+  if (use) p.stock = safeNumber(p.stock) - q;
+  if (order.status === "draft") order.status = "open";
 }
 
 function openModal({ title, bodyHTML, primaryText = "Save", onSubmit }) {
@@ -194,6 +250,22 @@ function storageEstimate() {
   const kb = bytes / 1024;
   if (kb < 1024) return `${kb.toFixed(1)} KB`;
   return `${(kb / 1024).toFixed(2)} MB`;
+}
+
+function getPopularProducts(limit = 8) {
+  const counts = new Map();
+  for (const o of DB.orders) {
+    for (const it of o.items || []) {
+      if (!it?.productId) continue;
+      counts.set(it.productId, (counts.get(it.productId) || 0) + safeNumber(it.qty, 1));
+    }
+  }
+  return DB.products
+    .slice()
+    .map((p) => ({ p, c: counts.get(p.id) || 0 }))
+    .sort((a, b) => b.c - a.c || (a.p.name || "").localeCompare(b.p.name || ""))
+    .map((x) => x.p)
+    .slice(0, limit);
 }
 
 // Dashboard render
@@ -257,6 +329,61 @@ function renderDashboard() {
   });
 }
 
+function renderKitchen() {
+  if (!el.kitchenOpen || !el.kitchenReady) return;
+  const typeFilter = (el.kitchenTypeFilter?.value || "").trim();
+  const list = DB.orders
+    .filter((o) => (typeFilter ? o.type === typeFilter : true))
+    .filter((o) => o.status === "open" || o.status === "ready")
+    .sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
+
+  const open = list.filter((o) => o.status === "open");
+  const ready = list.filter((o) => o.status === "ready");
+
+  el.kitchenOpen.innerHTML = open.length ? open.map((o) => kitchenTicketHTML(o)).join("") : `<div class="empty">No open tickets.</div>`;
+  el.kitchenReady.innerHTML = ready.length ? ready.map((o) => kitchenTicketHTML(o)).join("") : `<div class="empty">No ready tickets.</div>`;
+
+  document.querySelectorAll("[data-kitchen-order]").forEach((t) => {
+    const pick = () => {
+      selectedOrderId = t.getAttribute("data-kitchen-order");
+      setView("orders");
+      renderOrders();
+      renderOrderDetails();
+    };
+    t.addEventListener("click", pick);
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") pick();
+    });
+  });
+}
+
+function kitchenTicketHTML(order) {
+  const cust = customerById(order.customerId)?.name || "—";
+  const extra = orderExtraMeta(order);
+  const when = (order.createdAt || "").slice(0, 16).replace("T", " ");
+  const items = (order.items || []).slice().map((it) => {
+    const p = productById(it.productId);
+    const name = p?.name || it.name || "Item";
+    return `<div class="ticket-line"><span>${escapeHtml(name)}</span><span class="qty">x${escapeHtml(String(Math.floor(safeNumber(it.qty, 1))))}</span></div>`;
+  });
+  return `<div class="ticket" role="button" tabindex="0" data-kitchen-order="${escapeHtml(order.id)}">
+    <div class="ticket-head">
+      <div>
+        <div class="ticket-title">${escapeHtml(orderLabel(order))} <span class="tag ${statusClass(order.status)}">${escapeHtml(order.status)}</span></div>
+        <div class="ticket-meta">
+          <span>${escapeHtml(orderTypeLabel(order.type))}</span>
+          ${extra ? `<span>${escapeHtml(extra)}</span>` : ""}
+          <span>${escapeHtml(cust)}</span>
+          <span class="mono">${escapeHtml(when)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="ticket-items">
+      ${items.length ? items.join("") : `<div class="muted small">No items</div>`}
+    </div>
+  </div>`;
+}
+
 // Orders render
 function renderOrders() {
   const q = (el.orderSearch.value || "").trim().toLowerCase();
@@ -280,12 +407,15 @@ function renderOrders() {
           const total = orderTotal(o);
           const active = o.id === selectedOrderId;
           const paidTag = o.paid ? `<span class="tag">Paid</span>` : `<span class="tag">Unpaid</span>`;
+          const meta = orderShortMeta(o);
           return `<div class="list-item ${active ? "is-active" : ""}" data-order="${escapeHtml(o.id)}" role="button" tabindex="0">
             <div class="li-main">
               <div class="li-title">${escapeHtml(orderLabel(o))} <span class="tag ${statusClass(o.status)}">${escapeHtml(
             o.status || "draft"
           )}</span></div>
-              <div class="li-sub">${escapeHtml(cust)} • ${escapeHtml((o.createdAt || "").slice(0, 16).replace("T", " "))}</div>
+              <div class="li-sub">${escapeHtml(cust)}${meta ? " • " + escapeHtml(meta) : ""} • ${escapeHtml(
+            (o.createdAt || "").slice(0, 16).replace("T", " ")
+          )}</div>
             </div>
             <div class="li-right">
               <div class="mono">${escapeHtml(formatMoney(total, currency))}</div>
@@ -323,6 +453,23 @@ function renderOrderDetails() {
   const cust = customerById(order.customerId);
   const items = Array.isArray(order.items) ? order.items : [];
   const total = orderTotal(order);
+  const extra = orderExtraMeta(order);
+
+  const popular = getPopularProducts(8);
+  const quickAddHTML = popular.length
+    ? `<div class="divider"></div>
+       <div class="label">Quick add</div>
+       <div class="quick-add">
+         ${popular
+           .map(
+             (p) =>
+               `<button class="btn btn-ghost" type="button" data-quick-add="${escapeHtml(p.id)}">${escapeHtml(
+                 p.name
+               )}</button>`
+           )
+           .join("")}
+       </div>`
+    : "";
 
   el.orderDetailsActions.innerHTML = `
     <button class="btn btn-ghost" id="btnEditOrder" type="button">Edit</button>
@@ -334,6 +481,7 @@ function renderOrderDetails() {
   el.orderDetails.innerHTML = `
     <div class="row">
       <span class="tag ${statusClass(order.status)}">Status: ${escapeHtml(order.status || "draft")}</span>
+      <span class="tag">Type: ${escapeHtml(orderTypeLabel(order.type))}${extra ? ` • ${escapeHtml(extra)}` : ""}</span>
       <span class="tag">Paid: ${order.paid ? "Yes" : "No"}</span>
       <span class="tag mono">${escapeHtml((order.createdAt || "").slice(0, 19).replace("T"," "))}</span>
     </div>
@@ -351,6 +499,8 @@ function renderOrderDetails() {
         <div>${escapeHtml(order.notes || "—")}</div>
       </div>
     </div>
+
+    ${quickAddHTML}
 
     <div class="divider"></div>
 
@@ -394,6 +544,17 @@ function renderOrderDetails() {
       <div class="tag">Total: <span class="mono">${escapeHtml(formatMoney(total, currency))}</span></div>
     </div>
   `;
+
+  el.orderDetails.querySelectorAll("[data-quick-add]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      try {
+        addProductLineToOrder(order, btn.getAttribute("data-quick-add"), 1, { useStock: true });
+        saveDB(DB);
+      } catch (e) {
+        alert(e?.message || String(e));
+      }
+    });
+  });
 
   el.orderDetails.querySelectorAll("[data-del-line]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -454,6 +615,19 @@ function openEditOrder(order) {
           </select>
         </div>
       </div>
+      <div class="form-grid">
+        <div class="field">
+          <div class="label">Order type</div>
+          <select class="select" name="type" required>
+            ${["dine-in","takeaway","delivery"].map(t => `<option value="${t}" ${t === (order.type || "takeaway") ? "selected":""}>${orderTypeLabel(t)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Table / Pickup name</div>
+          <input class="input" name="tableOrPickup" value="${escapeHtml(order.type === "dine-in" ? (order.table || "") : (order.pickupName || ""))}" placeholder="e.g. 4 or Amina" />
+          <div class="help">Dine-in uses table number. Takeaway/Delivery uses pickup name.</div>
+        </div>
+      </div>
       <div class="field">
         <div class="label">Notes</div>
         <input class="input" name="notes" value="${escapeHtml(order.notes || "")}" placeholder="Optional…" />
@@ -465,6 +639,10 @@ function openEditOrder(order) {
     onSubmit: (fd) => {
       order.customerId = String(fd.get("customerId") || "");
       order.status = String(fd.get("status") || "draft");
+      order.type = String(fd.get("type") || "takeaway");
+      const tableOrPickup = String(fd.get("tableOrPickup") || "").trim();
+      order.table = order.type === "dine-in" ? tableOrPickup : "";
+      order.pickupName = order.type === "dine-in" ? "" : tableOrPickup;
       order.notes = String(fd.get("notes") || "").trim();
       if (order.status === "completed") order.paid = true;
       saveDB(DB);
@@ -517,25 +695,9 @@ function openAddOrderItem(order) {
       const productId = String(fd.get("productId") || "");
       const qty = Math.max(1, Math.floor(safeNumber(fd.get("qty"), 1)));
       const useStock = String(fd.get("useStock") || "yes") === "yes";
-      const p = productById(productId);
-      if (!p) throw new Error("Product not found.");
-      if (useStock && safeNumber(p.stock) < qty) throw new Error(`Not enough stock for "${p.name}".`);
-
       const unitPriceRaw = String(fd.get("unitPrice") || "").trim();
-      const unitPrice = unitPriceRaw === "" ? safeNumber(p.price) : safeNumber(unitPriceRaw);
-      if (unitPrice < 0) throw new Error("Unit price must be >= 0.");
-
-      order.items.push({
-        id: uid("line"),
-        productId: p.id,
-        name: p.name,
-        qty,
-        unitPrice,
-        usedStock: useStock,
-      });
-
-      if (useStock) p.stock = safeNumber(p.stock) - qty;
-      if (order.status === "draft") order.status = "open";
+      const unitPriceOverride = unitPriceRaw === "" ? null : unitPriceRaw;
+      addProductLineToOrder(order, productId, qty, { unitPriceOverride, useStock });
       saveDB(DB);
     },
   });
@@ -547,6 +709,9 @@ function createNewOrder() {
     id: uid("ord"),
     number: ensureOrderNumber(),
     status: "draft",
+    type: "takeaway",
+    table: "",
+    pickupName: "",
     customerId: walkIn?.id || "",
     notes: "",
     paid: false,
@@ -874,6 +1039,7 @@ function resetAll() {
 function renderAll() {
   el.footerStorage.textContent = `Storage used: ${storageEstimate()} • Updated: ${new Date(DB.meta.updatedAt).toLocaleString()}`;
   renderDashboard();
+  renderKitchen();
   renderOrders();
   renderOrderDetails();
   renderProducts();
@@ -898,6 +1064,9 @@ el.customerSearch.addEventListener("input", renderCustomers);
 
 el.btnNewProduct.addEventListener("click", openNewProduct);
 el.btnNewCustomer.addEventListener("click", openNewCustomer);
+
+el.kitchenTypeFilter?.addEventListener("change", renderKitchen);
+el.btnKitchenRefresh?.addEventListener("click", renderKitchen);
 
 // Initial render
 renderAll();
